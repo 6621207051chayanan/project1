@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ประวัติการจอง FishingPark Pro - ตรวจสอบสถานะการจอง แนบสลิปชำระเงิน และจัดการรายการจอง">
+  <title>ประวัติการจอง | FishingPark Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- ===== TOAST NOTIFICATION ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== MODAL OVERLAY ===== -->
+<div id="modal-overlay" class="modal-overlay hidden"></div>
+
+<!-- ===== LOADING SPINNER ===== -->
+<div id="loading-spinner" class="loading-spinner hidden">
+  <div class="spinner"></div>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <i class="fas fa-fish"></i>
+      <span>FishingPark Pro</span>
+    </a>
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link" id="nav-home">
+        <i class="fas fa-home"></i> หน้าหลัก
+      </a>
+      <a href="ponds.html" class="nav-link" id="nav-ponds">
+        <i class="fas fa-water"></i> บ่อตกปลา
+      </a>
+      <a href="booking.html" class="nav-link" id="nav-booking">
+        <i class="fas fa-calendar-check"></i> จองคิว
+      </a>
+      <a href="promotions.html" class="nav-link" id="nav-promo">
+        <i class="fas fa-tags"></i> โปรโมชั่น
+      </a>
+      <a href="news.html" class="nav-link" id="nav-news">
+        <i class="fas fa-bullhorn"></i> ข่าวสาร
+      </a>
+      <div class="nav-user-area" id="nav-guest">
+        <button class="btn-nav-login" onclick="showModal('login-modal')">
+          <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
+        </button>
+        <button class="btn-nav-register" onclick="showModal('register-modal')">
+          <i class="fas fa-user-plus"></i> สมัครสมาชิก
+        </button>
+      </div>
+      <div class="nav-user-area hidden" id="nav-logged">
+        <a href="admin.html" class="btn btn-warning btn-sm hidden" id="nav-admin-btn" style="margin-right:4px;">
+          <i class="fas fa-shield-alt"></i> แผง Admin
+        </a>
+        <div class="nav-profile-dropdown">
+          <button class="btn-profile" onclick="toggleDropdown('profile-dropdown')">
+            <div class="avatar-sm" id="nav-avatar-text">U</div>
+            <span id="nav-username">ผู้ใช้</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-menu hidden" id="profile-dropdown">
+            <a href="profile.html"><i class="fas fa-user"></i> โปรไฟล์</a>
+            <a href="my-bookings.html"><i class="fas fa-history"></i> ประวัติการจอง</a>
+            <a href="my-payment.html"><i class="fas fa-receipt"></i> ประวัติการชำระ</a>
+            <div class="dropdown-divider"></div>
+            <a href="javascript:void(0)" onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="nav-toggle" onclick="toggleNav()">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-wrapper" id="main-wrapper">
+
+  <div class="page active" id="page-my-bookings">
+    <div class="page-banner">
+      <h1><i class="fas fa-history"></i> ประวัติการจอง</h1>
+      <p>ดูประวัติและสถานะการจองของคุณ พร้อมยืนยันการชำระเงิน</p>
+    </div>
+    <div class="container section">
+      <div class="filter-bar">
+        <input type="text" class="search-input" id="my-booking-search" placeholder="🔍 ค้นหาการจอง..." oninput="filterMyBookings()">
+        <select class="filter-select" id="my-booking-status" onchange="filterMyBookings()">
+          <option value="">สถานะทั้งหมด</option>
+          <option value="pending">รอชำระเงิน</option>
+          <option value="confirmed">ยืนยันแล้ว</option>
+          <option value="completed">เสร็จสิ้น</option>
+          <option value="cancelled">ยกเลิกแล้ว</option>
+        </select>
+      </div>
+      <div id="my-bookings-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer" id="footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="footer-logo"><i class="fas fa-fish"></i> FishingPark Pro</div>
+      <p>ระบบจองบ่อตกปลาออนไลน์ที่ดีที่สุด<br>จองง่าย สะดวก รวดเร็ว พร้อมบริการครบครัน</p>
+      <div class="footer-social">
+        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+        <a href="#" aria-label="Line"><i class="fab fa-line"></i></a>
+        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+    <div class="footer-links">
+      <h4>ลิงก์ด่วน</h4>
+      <a href="index.html">หน้าหลัก</a>
+      <a href="ponds.html">บ่อตกปลา</a>
+      <a href="booking.html">จองคิว</a>
+      <a href="promotions.html">โปรโมชั่น</a>
+      <a href="news.html">ข่าวสาร</a>
+    </div>
+    <div class="footer-contact">
+      <h4>ติดต่อเรา</h4>
+      <p><i class="fas fa-map-marker-alt"></i> 123 ถ.สุขุมวิท กรุงเทพฯ 10110</p>
+      <p><i class="fas fa-phone"></i> 02-123-4567</p>
+      <p><i class="fas fa-envelope"></i> info@fishingparkpro.com</p>
+      <p><i class="fas fa-clock"></i> เปิด 06:00 - 22:00 น. ทุกวัน</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2024 FishingPark Pro. สงวนลิขสิทธิ์ทุกประการ</p>
+    <p>Admin: <a href="#" onclick="showAdminLoginModal()">เข้าสู่ระบบผู้ดูแล</a></p>
+  </div>
+</footer>
+
+<!-- ========== MODALS ========== -->
+<div class="modal hidden" id="login-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ</h3>
+      <button class="modal-close" onclick="closeModal('login-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="login(event)">
+        <div class="form-group">
+          <label class="form-label">อีเมล</label>
+          <input type="email" class="form-control" id="login-email" placeholder="email@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">รหัสผ่าน</label>
+          <div class="input-with-icon">
+            <input type="password" class="form-control" id="login-password" placeholder="รหัสผ่าน" required>
+            <button type="button" class="toggle-password" onclick="togglePassword('login-password')"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ</button>
+      </form>
+      <div class="modal-footer-links">
+        <p>ยังไม่มีบัญชี? <a href="#" onclick="switchModal('login-modal','register-modal')">สมัครสมาชิก</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="register-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-plus"></i> สมัครสมาชิก</h3>
+      <button class="modal-close" onclick="closeModal('register-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="register(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">ชื่อ *</label>
+            <input type="text" class="form-control" id="reg-firstname" placeholder="ชื่อ" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">นามสกุล *</label>
+            <input type="text" class="form-control" id="reg-lastname" placeholder="นามสกุล" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมล *</label>
+            <input type="email" class="form-control" id="reg-email" placeholder="email@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">เบอร์โทรศัพท์ *</label>
+            <input type="tel" class="form-control" id="reg-phone" placeholder="0XX-XXX-XXXX" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">รหัสผ่าน * (อย่างน้อย 6 ตัว)</label>
+            <div class="input-with-icon">
+              <input type="password" class="form-control" id="reg-password" placeholder="รหัสผ่าน" required>
+              <button type="button" class="toggle-password" onclick="togglePassword('reg-password')"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ยืนยันรหัสผ่าน *</label>
+            <div class="input-with-icon">
+              <input type="password" class="form-control" id="reg-confirm-password" placeholder="ยืนยันรหัสผ่าน" required>
+              <button type="button" class="toggle-password" onclick="togglePassword('reg-confirm-password')"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">ที่อยู่</label>
+            <textarea class="form-control" id="reg-address" rows="2" placeholder="ที่อยู่ของคุณ..."></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-user-plus"></i> สมัครสมาชิก</button>
+      </form>
+      <div class="modal-footer-links">
+        <p>มีบัญชีอยู่แล้ว? <a href="#" onclick="switchModal('register-modal','login-modal')">เข้าสู่ระบบ</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="admin-login-modal">
+  <div class="modal-box modal-sm">
+    <div class="modal-header">
+      <h3><i class="fas fa-shield-alt"></i> ผู้ดูแลระบบ</h3>
+      <button class="modal-close" onclick="closeModal('admin-login-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="adminLogin(event)">
+        <div class="form-group">
+          <label class="form-label">ชื่อผู้ใช้</label>
+          <input type="text" class="form-control" id="admin-username" placeholder="admin" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">รหัสผ่าน</label>
+          <input type="password" class="form-control" id="admin-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-warning btn-block"><i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ Admin</button>
+      </form>
+      <div class="modal-footer-links">
+        <small class="text-muted">Demo: admin / admin1234</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="modal hidden" id="booking-detail-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="fas fa-info-circle"></i> รายละเอียดการจอง</h3>
+      <button class="modal-close" onclick="closeModal('booking-detail-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="booking-detail-content"></div>
+  </div>
+</div>
+
+<!-- Confirm Cancel Modal -->
+<div class="modal hidden" id="confirm-cancel-modal">
+  <div class="modal-box modal-sm">
+    <div class="modal-header">
+      <h3><i class="fas fa-exclamation-triangle"></i> ยืนยันการยกเลิก</h3>
+      <button class="modal-close" onclick="closeModal('confirm-cancel-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>คุณต้องการยกเลิกการจองนี้หรือไม่?</p>
+      <p class="text-muted">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+      <input type="hidden" id="cancel-booking-id">
+      <div class="modal-actions">
+        <button class="btn btn-outline-secondary" onclick="closeModal('confirm-cancel-modal')">ไม่ยกเลิก</button>
+        <button class="btn btn-danger" onclick="cancelBookingConfirm()"><i class="fas fa-times-circle"></i> ยืนยันการยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Detail Modal -->
+<div class="modal hidden" id="payment-info-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="fas fa-credit-card"></i> ข้อมูลการชำระเงิน</h3>
+      <button class="modal-close" onclick="closeModal('payment-info-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="payment-info-content"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

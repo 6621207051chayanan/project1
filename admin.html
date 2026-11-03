@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ระบบผู้ดูแลระบบ Admin Panel - FishingPark Pro">
+  <title>แผงควบคุมผู้ดูแลระบบ | FishingPark Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body style="background:#f1f5f9;">
+
+<!-- ===== TOAST NOTIFICATION ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== MODAL OVERLAY ===== -->
+<div id="modal-overlay" class="modal-overlay hidden"></div>
+
+<!-- ===== LOADING SPINNER ===== -->
+<div id="loading-spinner" class="loading-spinner hidden">
+  <div class="spinner"></div>
+</div>
+
+<!-- ===== NAVBAR (Minimal for Admin) ===== -->
+<nav class="navbar" id="navbar" style="border-bottom:1px solid #e2e8f0;">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <i class="fas fa-fish"></i>
+      <span>FishingPark Pro <span class="badge badge-warning" style="font-size:0.75rem;margin-left:6px;">ADMIN</span></span>
+    </a>
+    <div class="nav-menu" id="nav-menu">
+      <a href="index.html" class="nav-link"><i class="fas fa-home"></i> กลับหน้าหลักเว็บ</a>
+      <div class="nav-user-area" id="nav-logged">
+        <button class="btn btn-danger btn-sm" onclick="exitAdmin()">
+          <i class="fas fa-sign-out-alt"></i> ออกจากระบบ Admin
+        </button>
+      </div>
+    </div>
+    <button class="nav-toggle" onclick="document.getElementById('admin-sidebar').classList.toggle('hidden')">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== ADMIN SIDEBAR ===== -->
+<div class="admin-sidebar" id="admin-sidebar">
+  <div class="admin-sidebar-header">
+    <i class="fas fa-shield-alt"></i>
+    <span>Admin Panel</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="javascript:void(0)" onclick="showAdminPage('admin-dashboard')" class="admin-nav-link active" id="anav-dashboard">
+      <i class="fas fa-tachometer-alt"></i> แดชบอร์ด
+    </a>
+    <div class="admin-nav-group">
+      <div class="admin-nav-label">จัดการสมาชิก</div>
+      <a href="javascript:void(0)" onclick="showAdminPage('admin-members')" class="admin-nav-link" id="anav-members">
+        <i class="fas fa-users"></i> ข้อมูลสมาชิก
+      </a>
+    </div>
+    <div class="admin-nav-group">
+      <div class="admin-nav-label">จัดการบ่อ</div>
+      <a href="javascript:void(0)" onclick="showAdminPage('admin-ponds')" class="admin-nav-link" id="anav-ponds">
+        <i class="fas fa-water"></i> ข้อมูลบ่อตกปลา
+      </a>
+    </div>
+    <div class="admin-nav-group">
+      <div class="admin-nav-label">จัดการจอง</div>
+      <a href="javascript:void(0)" onclick="showAdminPage('admin-bookings')" class="admin-nav-link" id="anav-bookings">
+        <i class="fas fa-calendar-alt"></i> รายการจอง
+      </a>
+      <a href="javascript:void(0)" onclick="showAdminPage('admin-payments')" class="admin-nav-link" id="anav-payments">
+        <i class="fas fa-money-bill-wave"></i> การชำระเงิน
+      </a>
+    </div>
+    <div class="admin-nav-group">
+      <div class="admin-nav-label">ประชาสัมพันธ์</div>
+      <a href="javascript:void(0)" onclick="showAdminPage('admin-news')" class="admin-nav-link" id="anav-news">
+        <i class="fas fa-bullhorn"></i> จัดการข่าวสาร
+      </a>
+    </div>
+    <div class="admin-nav-group">
+      <div class="admin-nav-label">รายงาน</div>
+      <a href="javascript:void(0)" onclick="showAdminPage('admin-reports')" class="admin-nav-link" id="anav-reports">
+        <i class="fas fa-chart-bar"></i> รายงานภาพรวม
+      </a>
+    </div>
+    <div class="admin-nav-group">
+      <a href="index.html" class="admin-nav-link">
+        <i class="fas fa-home"></i> กลับหน้าหลักเว็บไซต์
+      </a>
+    </div>
+  </nav>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-wrapper admin-mode" id="main-wrapper">
+  <div class="page active" id="page-admin">
+    <div class="admin-layout">
+
+      <!-- Admin Dashboard -->
+      <div class="admin-page active" id="admin-dashboard">
+        <div class="admin-header">
+          <h2><i class="fas fa-tachometer-alt"></i> แดชบอร์ด</h2>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">สมาชิกทั้งหมด</div>
+              <div class="stat-value" id="astat-users">0</div>
+            </div>
+          </div>
+          <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">การจองทั้งหมด</div>
+              <div class="stat-value" id="astat-bookings">0</div>
+            </div>
+          </div>
+          <div class="stat-card stat-orange">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">รอตรวจสอบชำระ</div>
+              <div class="stat-value" id="astat-pending">0</div>
+            </div>
+          </div>
+          <div class="stat-card stat-purple">
+            <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">รายได้รวม</div>
+              <div class="stat-value" id="astat-revenue">฿0</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-line"></i> ยอดการจอง 7 วันล่าสุด</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="bookingsChart" width="400" height="200"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-pie"></i> สัดส่วนการจองตามบ่อ</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="pondsChart" width="400" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="recent-bookings-card">
+          <div class="card-header-flex">
+            <h3><i class="fas fa-clock"></i> รายการจองล่าสุด</h3>
+            <button class="btn btn-outline-primary btn-sm" onclick="showAdminPage('admin-bookings')">ดูทั้งหมด</button>
+          </div>
+          <div class="data-table-wrap">
+            <table class="data-table" id="admin-recent-table">
+              <thead><tr><th>รหัส</th><th>ผู้จอง</th><th>บ่อ</th><th>วันที่</th><th>ช่วงเวลา</th><th>สถานะ</th><th>การชำระ</th></tr></thead>
+              <tbody id="admin-recent-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Members -->
+      <div class="admin-page" id="admin-members">
+        <div class="admin-header">
+          <h2><i class="fas fa-users"></i> ข้อมูลสมาชิก</h2>
+          <button class="btn btn-primary" onclick="showModal('add-member-modal')"><i class="fas fa-plus"></i> เพิ่มสมาชิก</button>
+        </div>
+        <div class="admin-filter-bar">
+          <input type="text" class="search-input" id="admin-member-search" placeholder="🔍 ค้นหาสมาชิก..." oninput="adminFilterMembers()">
+          <select class="filter-select" id="admin-member-status" onchange="adminFilterMembers()">
+            <option value="">สถานะทั้งหมด</option>
+            <option value="active">ใช้งาน</option>
+            <option value="inactive">ระงับ</option>
+          </select>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>ID</th><th>ชื่อ-นามสกุล</th><th>อีเมล</th><th>เบอร์โทร</th><th>ที่อยู่</th><th>วันที่สมัคร</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <tbody id="admin-members-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Ponds -->
+      <div class="admin-page" id="admin-ponds">
+        <div class="admin-header">
+          <h2><i class="fas fa-water"></i> ข้อมูลบ่อตกปลา</h2>
+          <button class="btn btn-primary" onclick="showModal('add-pond-modal')"><i class="fas fa-plus"></i> เพิ่มบ่อ</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>รูป</th><th>ชื่อบ่อ</th><th>ประเภท</th><th>ราคา/ชม.</th><th>เวลาเปิด-ปิด</th><th>ความจุ</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <tbody id="admin-ponds-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Bookings -->
+      <div class="admin-page" id="admin-bookings">
+        <div class="admin-header">
+          <h2><i class="fas fa-calendar-alt"></i> รายการจองคิว</h2>
+          <div class="admin-header-actions">
+            <button class="btn btn-outline-secondary btn-sm" onclick="exportBookingsCSV()"><i class="fas fa-download"></i> ส่งออก CSV</button>
+            <button class="btn btn-primary" onclick="showModal('add-booking-modal')"><i class="fas fa-plus"></i> เพิ่มการจอง</button>
+          </div>
+        </div>
+        <div class="admin-filter-bar">
+          <input type="text" class="search-input" id="admin-booking-search" placeholder="🔍 ค้นหาการจอง..." oninput="adminFilterBookings()">
+          <select class="filter-select" id="admin-booking-status" onchange="adminFilterBookings()">
+            <option value="">สถานะทั้งหมด</option>
+            <option value="pending">รอชำระเงิน</option>
+            <option value="confirmed">ยืนยันแล้ว</option>
+            <option value="completed">เสร็จสิ้น</option>
+            <option value="cancelled">ยกเลิกแล้ว</option>
+          </select>
+          <input type="date" class="filter-select" id="admin-booking-date" onchange="adminFilterBookings()">
+          <button class="btn btn-outline-secondary btn-sm" onclick="clearAdminBookingFilter()">ล้างตัวกรอง</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>รหัสจอง</th><th>ผู้จอง</th><th>เบอร์โทร</th><th>บ่อ</th><th>วันที่</th><th>ช่วงเวลา</th><th>จำนวน</th><th>ยอดเงิน</th><th>สถานะ</th><th>การชำระ</th><th>จัดการ</th></tr></thead>
+            <tbody id="admin-bookings-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Payments -->
+      <div class="admin-page" id="admin-payments">
+        <div class="admin-header">
+          <h2><i class="fas fa-money-bill-wave"></i> การชำระเงิน</h2>
+        </div>
+        <div class="admin-filter-bar">
+          <select class="filter-select" id="admin-pay-status" onchange="adminFilterPayments()">
+            <option value="">สถานะทั้งหมด</option>
+            <option value="pending">รอตรวจสอบ</option>
+            <option value="verified">ยืนยันแล้ว</option>
+            <option value="rejected">ปฏิเสธ</option>
+          </select>
+          <select class="filter-select" id="admin-pay-method" onchange="adminFilterPayments()">
+            <option value="">ช่องทางทั้งหมด</option>
+            <option value="transfer">โอนเงินธนาคาร</option>
+            <option value="promptpay">พร้อมเพย์</option>
+            <option value="cash">เงินสด</option>
+          </select>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>รหัสจอง</th><th>ผู้จอง</th><th>ยอดชำระ</th><th>ช่องทาง</th><th>วันที่จอง</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead>
+            <tbody id="admin-payments-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin News -->
+      <div class="admin-page" id="admin-news">
+        <div class="admin-header">
+          <h2><i class="fas fa-bullhorn"></i> จัดการข่าวสารและโปรโมชั่น</h2>
+          <button class="btn btn-primary" onclick="showModal('add-news-modal')"><i class="fas fa-plus"></i> เพิ่มข่าวสาร</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>หัวข้อ</th><th>หมวดหมู่</th><th>วันที่เริ่ม</th><th>วันที่สิ้นสุด</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <tbody id="admin-news-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Reports -->
+      <div class="admin-page" id="admin-reports">
+        <div class="admin-header">
+          <h2><i class="fas fa-chart-bar"></i> รายงานภาพรวม</h2>
+          <div class="report-filter">
+            <select class="filter-select" id="report-period" onchange="generateReports()">
+              <option value="week">สัปดาห์นี้</option>
+              <option value="month" selected>เดือนนี้</option>
+              <option value="year">ปีนี้</option>
+            </select>
+          </div>
+        </div>
+        <div class="reports-grid">
+          <div class="report-card">
+            <div class="report-header"><i class="fas fa-calendar-check"></i> รายงานการจองคิว</div>
+            <div id="report-bookings-content"></div>
+          </div>
+          <div class="report-card">
+            <div class="report-header"><i class="fas fa-users"></i> รายงานผู้ใช้บริการ</div>
+            <div id="report-users-content"></div>
+          </div>
+          <div class="report-card">
+            <div class="report-header"><i class="fas fa-money-bill-wave"></i> รายงานรายได้</div>
+            <div id="report-revenue-content"></div>
+          </div>
+          <div class="report-card report-full">
+            <div class="report-header"><i class="fas fa-file-alt"></i> รายงานสรุปการให้บริการ</div>
+            <div id="report-summary-content"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========== ADMIN MODALS ========== -->
+<!-- Add/Edit Pond Modal -->
+<div class="modal hidden" id="add-pond-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3 id="pond-modal-title"><i class="fas fa-water"></i> เพิ่มบ่อตกปลา</h3>
+      <button class="modal-close" onclick="closeModal('add-pond-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="savePond(event)">
+        <input type="hidden" id="pond-edit-id">
+        <div class="form-grid">
+          <div class="form-group form-full">
+            <label class="form-label">ชื่อบ่อ *</label>
+            <input type="text" class="form-control" id="pond-name" placeholder="ชื่อบ่อตกปลา" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ประเภทบ่อ</label>
+            <select class="form-control" id="pond-type">
+              <option value="ทั่วไป">ทั่วไป</option>
+              <option value="VIP">VIP</option>
+              <option value="พรีเมียม">พรีเมียม</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ราคา/ชั่วโมง (บาท) *</label>
+            <input type="number" class="form-control" id="pond-price" placeholder="200" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">เวลาเปิด</label>
+            <input type="time" class="form-control" id="pond-open" value="06:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">เวลาปิด</label>
+            <input type="time" class="form-control" id="pond-close" value="20:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ความจุ (คน)</label>
+            <input type="number" class="form-control" id="pond-capacity" placeholder="10" value="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">รูปภาพ URL</label>
+            <input type="text" class="form-control" id="pond-image" placeholder="images/pond1.jpg">
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">รายละเอียด</label>
+            <textarea class="form-control" id="pond-desc" rows="3" placeholder="รายละเอียดบ่อตกปลา..."></textarea>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">สิ่งอำนวยความสะดวก (คั่นด้วย,)</label>
+            <input type="text" class="form-control" id="pond-facilities" placeholder="ห้องน้ำ, ที่จอดรถ, ร้านอาหาร">
+          </div>
+          <div class="form-group">
+            <label class="form-label">สถานะ</label>
+            <select class="form-control" id="pond-status">
+              <option value="open">เปิดให้บริการ</option>
+              <option value="closed">ปิดให้บริการ</option>
+              <option value="maintenance">ปรับปรุง</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline-secondary" onclick="closeModal('add-pond-modal')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Member Modal (Admin) -->
+<div class="modal hidden" id="add-member-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3 id="member-modal-title"><i class="fas fa-user-plus"></i> เพิ่มสมาชิก</h3>
+      <button class="modal-close" onclick="closeModal('add-member-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="saveMember(event)">
+        <input type="hidden" id="member-edit-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">ชื่อ *</label>
+            <input type="text" class="form-control" id="member-firstname" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">นามสกุล *</label>
+            <input type="text" class="form-control" id="member-lastname" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมล *</label>
+            <input type="email" class="form-control" id="member-email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">เบอร์โทร *</label>
+            <input type="tel" class="form-control" id="member-phone" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">รหัสผ่าน</label>
+            <input type="password" class="form-control" id="member-password" placeholder="ปล่อยว่างหากไม่เปลี่ยน">
+          </div>
+          <div class="form-group">
+            <label class="form-label">สถานะ</label>
+            <select class="form-control" id="member-status">
+              <option value="active">ใช้งาน</option>
+              <option value="inactive">ระงับ</option>
+            </select>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">ที่อยู่</label>
+            <textarea class="form-control" id="member-address" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline-secondary" onclick="closeModal('add-member-modal')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Booking Modal (Admin) -->
+<div class="modal hidden" id="add-booking-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3 id="booking-modal-title"><i class="fas fa-calendar-plus"></i> เพิ่มการจอง</h3>
+      <button class="modal-close" onclick="closeModal('add-booking-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="saveBookingAdmin(event)">
+        <input type="hidden" id="booking-edit-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">ชื่อผู้จอง *</label>
+            <input type="text" class="form-control" id="ab-name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">เบอร์โทร *</label>
+            <input type="tel" class="form-control" id="ab-phone" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมล</label>
+            <input type="email" class="form-control" id="ab-email">
+          </div>
+          <div class="form-group">
+            <label class="form-label">บ่อตกปลา *</label>
+            <select class="form-control" id="ab-pond" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่ *</label>
+            <input type="date" class="form-control" id="ab-date" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ช่วงเวลา *</label>
+            <select class="form-control" id="ab-slot" required>
+              <option value="เช้า (06:00-12:00)">เช้า (06:00-12:00)</option>
+              <option value="บ่าย (12:00-18:00)">บ่าย (12:00-18:00)</option>
+              <option value="เย็น (18:00-22:00)">เย็น (18:00-22:00)</option>
+              <option value="เต็มวัน (06:00-22:00)">เต็มวัน (06:00-22:00)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">จำนวนผู้ใช้บริการ</label>
+            <input type="number" class="form-control" id="ab-persons" value="1" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">สถานะการจอง</label>
+            <select class="form-control" id="ab-status" onchange="syncAdminPaymentStatus(this.value)">
+              <option value="confirmed">ยืนยันแล้ว</option>
+              <option value="pending">รอชำระเงิน</option>
+              <option value="completed">เสร็จสิ้น</option>
+              <option value="cancelled">ยกเลิก</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">สถานะการชำระเงิน</label>
+            <select class="form-control" id="ab-payment-status">
+              <option value="verified">ยืนยันแล้ว</option>
+              <option value="pending">รอชำระเงิน / รอตรวจสอบ</option>
+              <option value="rejected">ปฏิเสธ / ยกเลิก</option>
+            </select>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">หมายเหตุ</label>
+            <textarea class="form-control" id="ab-note" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline-secondary" onclick="closeModal('add-booking-modal')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add News Modal -->
+<div class="modal hidden" id="add-news-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3 id="news-modal-title"><i class="fas fa-bullhorn"></i> เพิ่มข่าวสาร</h3>
+      <button class="modal-close" onclick="closeModal('add-news-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="saveNews(event)">
+        <input type="hidden" id="news-edit-id">
+        <div class="form-grid">
+          <div class="form-group form-full">
+            <label class="form-label">หัวข้อ *</label>
+            <input type="text" class="form-control" id="news-title" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">หมวดหมู่</label>
+            <select class="form-control" id="news-category">
+              <option value="ข่าวสาร">ข่าวสาร</option>
+              <option value="โปรโมชั่น">โปรโมชั่น</option>
+              <option value="กิจกรรม">กิจกรรม</option>
+              <option value="ประกาศ">ประกาศ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">รูปภาพ URL</label>
+            <input type="text" class="form-control" id="news-image" placeholder="URL รูปภาพ">
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่เริ่มแสดง</label>
+            <input type="date" class="form-control" id="news-start">
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่สิ้นสุด</label>
+            <input type="date" class="form-control" id="news-end">
+          </div>
+          <div class="form-group">
+            <label class="form-label">สถานะ</label>
+            <select class="form-control" id="news-status">
+              <option value="active">เปิดแสดง</option>
+              <option value="inactive">ปิดแสดง</option>
+            </select>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">เนื้อหา *</label>
+            <textarea class="form-control" id="news-content" rows="5" required></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline-secondary" onclick="closeModal('add-news-modal')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="modal hidden" id="booking-detail-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="fas fa-info-circle"></i> รายละเอียดการจอง</h3>
+      <button class="modal-close" onclick="closeModal('booking-detail-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="booking-detail-content"></div>
+  </div>
+</div>
+
+<!-- Confirm Cancel Modal -->
+<div class="modal hidden" id="confirm-cancel-modal">
+  <div class="modal-box modal-sm">
+    <div class="modal-header">
+      <h3><i class="fas fa-exclamation-triangle"></i> ยืนยันการยกเลิก</h3>
+      <button class="modal-close" onclick="closeModal('confirm-cancel-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>คุณต้องการยกเลิกการจองนี้หรือไม่?</p>
+      <p class="text-muted">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+      <input type="hidden" id="cancel-booking-id">
+      <div class="modal-actions">
+        <button class="btn btn-outline-secondary" onclick="closeModal('confirm-cancel-modal')">ไม่ยกเลิก</button>
+        <button class="btn btn-danger" onclick="cancelBookingConfirm()"><i class="fas fa-times-circle"></i> ยืนยันการยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Detail Modal -->
+<div class="modal hidden" id="payment-info-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="fas fa-credit-card"></i> ข้อมูลการชำระเงิน</h3>
+      <button class="modal-close" onclick="closeModal('payment-info-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="payment-info-content"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
